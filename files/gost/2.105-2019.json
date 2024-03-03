@@ -1,0 +1,17 @@
+{
+  "name": "2.105-2019",
+  "font-style": [
+    "Times New Roman",
+    "Arial"
+  ],
+  "font-size": "14",
+  "paragraph-indent": [
+    "12.5",
+    "17"
+  ],
+  "interval": [
+    "1.5",
+    "2"
+  ],
+  "alignment": "JUSTIFY"
+}

@@ -1,5 +1,3 @@
-import os
-
 from aiogram.dispatcher import FSMContext
 from aiogram.contrib.fsm_storage.memory import MemoryStorage
 from aiogram.dispatcher.filters.state import StatesGroup, State
@@ -7,8 +5,7 @@ import logging
 from aiogram import Bot, Dispatcher, executor, types
 import cfg as c
 from docx import Document
-import docer as dc
-import file_reader as fl
+from docx_ed import docer as dc, file_reader as fl
 
 bot = Bot(token=c.TOKEN)
 logging.basicConfig(level=logging.INFO)
