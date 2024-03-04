@@ -1,9 +1,7 @@
 import os
-
 import docx
-
 import docx_ed.cfg as c
-from docx_ed.file_reader import file_reader
+from docx_ed.file_reader import FileReader
 
 
 def painter(paragraph: docx, errors: list[tuple]):
@@ -18,7 +16,7 @@ def paint(paragraph: docx, color: str, comment: str):
 
 
 class FileManger:
-    def __init__(self, user_id: int, docx_: docx.Document, name: str, doc_rej: bool = False, bot_rej: int = None,
+    def __init__(self, user_id: int, docx_: docx.Document, name: str, doc_rej: bool = False,
                  gost=None):
         self.gost = gost
         self.user_id = user_id
@@ -28,7 +26,6 @@ class FileManger:
         self.indent = None
         self.interval = None
         self.doc_rej = doc_rej
-        self.bot_rej = bot_rej
 
     @staticmethod
     def msg_errors(errors: list) -> str:
@@ -78,12 +75,11 @@ class FileManger:
         return self.msg_errors(errors)
 
     def get_params_from_ghost(self):
-        if self.gost in file_reader.get_files().keys():
-            params = file_reader(self.gost + '.json').read_file()
+        if self.gost in FileReader.get_files().keys():
+            params = FileReader(self.gost + '.json').read_file()
             self.alignment = c.setter_gost[params['alignment']]
             self.indent = params['paragraph-indent']
             self.interval = params['interval']
-            self.rej = -1
             return True
         return False
 
@@ -163,6 +159,7 @@ class FileManger:
         os.remove(self.user_file_name)
 
 
-obj = FileManger(1, docx.Document('../test2.docx'), 'tur', gost="2.105-2019", doc_rej=True)
-obj.is_correct_document()
-obj.user_file.save('Исправлен.docx')
+if __name__ == '__main__':
+    obj = FileManger(1, docx.Document('../test2.docx'), 'tur', gost="2.105-2019", doc_rej=True)
+    obj.is_correct_document()
+    obj.user_file.save('Исправлен.docx')

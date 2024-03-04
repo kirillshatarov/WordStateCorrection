@@ -2,7 +2,7 @@ import os
 import json
 
 
-class file_reader:
+class FileReader:
     def __init__(self, name: str, ):
         self.name = name
 

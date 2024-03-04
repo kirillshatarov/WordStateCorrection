@@ -5,7 +5,7 @@ import logging
 from aiogram import Bot, Dispatcher, executor, types
 import cfg as c
 from docx import Document
-from docx_ed import docer as dc, file_reader as fl
+from docx_ed import docx_cls as dc, file_reader as fl
 
 bot = Bot(token=c.TOKEN)
 logging.basicConfig(level=logging.INFO)
@@ -30,7 +30,7 @@ a_i_key.add("1.0", "1.25", "1.5", "2", "3")
 
 def gost_keys():
     gost_keys = types.ReplyKeyboardMarkup(resize_keyboard=True, one_time_keyboard=True)
-    for ke in fl.file_reader.get_files():
+    for ke in fl.FileReader.get_files():
         gost_keys.add(ke)
     return gost_keys
 
@@ -88,9 +88,9 @@ async def process(message: types.Message, state: FSMContext):
 @dp.message_handler(state=Form.gost)
 async def process_gost(message: types.Message, state: FSMContext):
     async with state.proxy() as data:
-        if message.text in fl.file_reader.get_files():
+        if message.text in fl.FileReader.get_files():
             data['doc_obj'].gost = message.text
-            respon = data['doc_obj'].full_check()
+            respon = data['doc_obj'].is_correct_document()
             await message.answer(respon, reply_markup=None)
             await Form.prechoose.set()
             await message.answer(
@@ -104,17 +104,17 @@ async def process_gost(message: types.Message, state: FSMContext):
 async def process1(message: types.Message, state: FSMContext):
     async with state.proxy() as data:
         if "Проверка выравнивания" == message.text:
-            data['doc_obj'].rej = 0
+            data['bot_rej'] = 0
             await message.answer(
                 "Спасибо, за выбор теперь выберите требование",
                 reply_markup=alig_key)
         elif "Проверка межстрочного интервала" == message.text:
-            data['doc_obj'].rej = 1
+            data['bot_rej'] = 1
             await message.answer(
                 "Спасибо, за выбор теперь выберите требование",
                 reply_markup=m_i_key)
         elif "Проверка абзацных отступов" == message.text:
-            data['doc_obj'].rej = 2
+            data['bot_rej'] = 2
             await message.answer(
                 "Спасибо, за выбор теперь выберите требование",
                 reply_markup=a_i_key)
@@ -129,13 +129,15 @@ async def process1(message: types.Message, state: FSMContext):
 @dp.message_handler(state=Form.choose2)
 async def process2(message: types.Message, state: FSMContext):
     async with state.proxy() as data:
-        if data['doc_obj'].rej == 0:
+        if data['bot_rej'] == 0:
             data['doc_obj'].alignment = message.text
-        elif data['doc_obj'].rej == 1:
+            await message.answer(data['doc_obj'].is_fully_alignment(), reply_markup=None)
+        elif data['bot_rej'] == 1:
             data['doc_obj'].interval = float(message.text)
-        elif data['doc_obj'].rej == 2:
+            await message.answer(data['doc_obj'].is_correct_line_spacing(), reply_markup=None)
+        elif data['bot_rej'] == 2:
             data['doc_obj'].indent = float(message.text)
-    await message.answer(data['doc_obj'].checker(), reply_markup=None)
+            await message.answer(data['doc_obj'].is_correct_indents(), reply_markup=None)
     await Form.choose1.set()
     await message.answer(
         "Спасибо, за использование нашего бота, вы можете выбрать другую функцию для вашего файла",
