@@ -1,13 +1,13 @@
 from docx.enum.text import WD_ALIGN_PARAGRAPH
 from docx.shared import RGBColor
 
-setter = {
+setter_gost = {
     "по ширине": WD_ALIGN_PARAGRAPH.JUSTIFY, "по левому краю": WD_ALIGN_PARAGRAPH.LEFT,
     "по правому краю": WD_ALIGN_PARAGRAPH.RIGHT, "по центру": WD_ALIGN_PARAGRAPH.CENTER,
     "по умолчанию": WD_ALIGN_PARAGRAPH is None
 }
 
-setter_gost = {
+setter_eng = {
     "JUSTIFY": WD_ALIGN_PARAGRAPH.JUSTIFY, "LEFT": WD_ALIGN_PARAGRAPH.LEFT,
     "RIGHT": WD_ALIGN_PARAGRAPH.RIGHT, "CENTER": WD_ALIGN_PARAGRAPH.CENTER,
     "None": WD_ALIGN_PARAGRAPH is None

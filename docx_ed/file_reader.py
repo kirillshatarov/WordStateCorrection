@@ -7,7 +7,7 @@ class FileReader:
         self.name = name
 
     def read_file(self):
-        with open(f"../files/gost/{self.name}") as f:
+        with open(f"../files/gost/{self.name}",encoding='UTF-8') as f:
             js_dict = json.load(f)
         return js_dict
 
