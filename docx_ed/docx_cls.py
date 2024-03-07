@@ -2,7 +2,7 @@ import os
 import docx
 import docx_ed.cfg as c
 from docx_ed.file_reader import FileReader
-
+from docx.shared import Pt
 
 def painter(paragraph: docx, errors: list[tuple]):
     for color, comment in errors:
@@ -25,6 +25,8 @@ class FileManger:
         self.alignment = None
         self.indent = None
         self.interval = None
+        self.fsize = None
+        self.fname = None
         self.doc_rej = doc_rej
 
     @staticmethod
@@ -39,6 +41,36 @@ class FileManger:
         for i, paragraph in enumerate(paragraphs):
             if paragraph.alignment != self.alignment:
                 errors.append(f"Не соответствие госту в {i + 1} строке")
+        return self.msg_errors(errors)
+
+    def is_correct_font_size(self):
+        paragraphs = self.user_file.paragraphs
+        errors = []
+        for i, paragraph in enumerate(paragraphs):
+            font_size = paragraph.style.font.size
+            if font_size:
+                font_size = font_size.pt
+                if isinstance(self.fsize,list):
+                    left, right = map(int, self.fsize)
+                    if left <= font_size <= right:
+                        errors.append(f"Размер шрифта не соответствие госту в {i + 1} строке")
+                else:
+                    if font_size != self.fsize:
+                        errors.append(f"Размер шрифта не соответствие госту в {i + 1} строке")
+        return self.msg_errors(errors)
+
+    def is_correct_font_style(self):
+        paragraphs = self.user_file.paragraphs
+        errors = []
+        for i, paragraph in enumerate(paragraphs):
+            font_style = paragraph.style.font.name
+            if font_style:
+                if isinstance(self.fname, list):
+                    if font_style in self.fname:
+                        errors.append(f"Стиль шрифта не соответствие госту в {i + 1} строке")
+                else:
+                    if font_style != self.fname:
+                        errors.append(f"Стиль шрифта не соответствие госту в {i + 1} строке")
         return self.msg_errors(errors)
 
     def is_correct_indents(self):
@@ -80,6 +112,8 @@ class FileManger:
             self.alignment = c.setter_gost[params['alignment']]
             self.indent = params['paragraph-indent']
             self.interval = params['interval']
+            self.fname = params['font-style']
+            self.fsize = params['font-size']
             return True
         return False
 
@@ -87,7 +121,9 @@ class FileManger:
         if self.get_params_from_ghost():
             errors = {'alignment': [],
                       'line_spacing': [],
-                      'indent': []
+                      'indent': [],
+                      'font-size':[],
+                      'font-style':[]
                       }
             for i, paragraph in enumerate(self.user_file.paragraphs):
                 if not (paragraph.style.name.startswith('Heading') and
@@ -96,10 +132,37 @@ class FileManger:
                     par_errors = []
                     if len(paragraph._element.xpath('./w:pPr/w:numPr')) > 0:
                         continue
+                    #Размер шрифта
+                    font_size = paragraph.style.font.size
+                    if font_size:
+                        font_size = font_size.pt
+                        if isinstance(self.fsize, list):
+                            left,right = map(float,self.fsize)
+                            if left <= font_size <= right:
+                                comment = c.exceptions['font-size'] + '-'.join(self.fsize)
+                                par_errors.append(('pink', comment))
+                        else:
+                            if font_size != float(self.fsize):
+                                comment = c.exceptions['font-size'] + str(self.fsize)
+                                par_errors.append(('pink', comment))
+                    #Стиль шрифта
+                    font_style = paragraph.style.font.name
+                    if font_style:
+                        if isinstance(self.fname,list):
+                            if font_style not in self.fname:
+                                comment = c.exceptions['font-style'] + '-'.join(self.fname)
+                                par_errors.append(('red', comment))
+                        else:
+                            if font_style not in self.fname:
+                                comment = c.exceptions['font-style'] + str(self.fname)
+                                par_errors.append(('red', comment))
+
                     # Выравнивание
-                    if paragraph.alignment != self.alignment:
-                        comment = c.exceptions['alignment'] + str(self.alignment)
-                        par_errors.append(('green', comment))
+                    alignment = paragraph.alignment
+                    if alignment:
+                        if alignment != self.alignment:
+                            comment = c.exceptions['alignment'] + str(self.alignment)
+                            par_errors.append(('green', comment))
 
                     # Межстрочный интервал
                     interval = paragraph.paragraph_format.line_spacing
@@ -147,7 +210,6 @@ class FileManger:
                 if errors[keyh]:
                     answer += f'Проблемы возникли с {keyh}: \n' + '\n'.join(errors[keyh]) + '\n'
             if answer:
-                print(answer)
                 return answer
             else:
                 return 'Все соотвествует ГОСТу'
@@ -162,4 +224,3 @@ class FileManger:
 if __name__ == '__main__':
     obj = FileManger(1, docx.Document('../test2.docx'), 'tur', gost="2.105-2019", doc_rej=True)
     obj.is_correct_document()
-    obj.user_file.save('Исправлен.docx')
