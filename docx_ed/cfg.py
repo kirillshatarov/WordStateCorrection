@@ -2,9 +2,17 @@ from docx.enum.text import WD_ALIGN_PARAGRAPH
 from docx.shared import RGBColor
 
 setter_gost = {
-    "по ширине": WD_ALIGN_PARAGRAPH.JUSTIFY, "по левому краю": WD_ALIGN_PARAGRAPH.LEFT,
-    "по правому краю": WD_ALIGN_PARAGRAPH.RIGHT, "по центру": WD_ALIGN_PARAGRAPH.CENTER,
+    "по ширине": WD_ALIGN_PARAGRAPH.JUSTIFY, "по левому": WD_ALIGN_PARAGRAPH.LEFT,
+    "по правому": WD_ALIGN_PARAGRAPH.RIGHT, "по центру": WD_ALIGN_PARAGRAPH.CENTER,
     "по умолчанию": WD_ALIGN_PARAGRAPH is None
+}
+
+sel_gost = {
+   WD_ALIGN_PARAGRAPH.JUSTIFY: "по ширине",
+   WD_ALIGN_PARAGRAPH.LEFT: "по левому",
+   WD_ALIGN_PARAGRAPH.RIGHT: "по правому",
+   WD_ALIGN_PARAGRAPH.CENTER: "по центру",
+   None: "по умолчанию"
 }
 
 setter_eng = {
@@ -29,16 +37,20 @@ colors = {
     'pink': RGBColor(250, 105, 165)
 }
 
+
+basic_ans = 'не соответствует ГОСТу.\n\t  Он должен быть: '
 exceptions = {
-    'line_spacing': 'Межстрочный интервал не соответствует ГОСТу.\nОн должен быть: ',
-    'alignment': 'Выравнивание не соответствует ГОСТу.\nОно должно быть: ',
-    'indent': 'Абзацный отступ не соответствует ГОСТу.\nОн должен быть: ',
-    'font-size': 'Размер шрифта не соответствует ГОСТу.\nОн должен быть: ',
-    'font-style': 'Стиль шрифта не соответствует ГОСТу.\nОн должен быть: '
+    'line_spacing': f'  Межстрочный интервал {basic_ans}',
+    'alignment': f'  Выравнивание {basic_ans}',
+    'indent': f'  Абзацный отступ {basic_ans}',
+    'font-size': f'  Размер шрифта {basic_ans}',
+    'font-style': f'  Стиль шрифта {basic_ans}',
 }
 
 color_exceptions = {
     'green': 'alignment',
     'blue': 'line_spacing',
-    'yellow': 'indent'
+    'yellow': 'indent',
+    'pink': 'font-size',
+    'red': 'font-style'
 }

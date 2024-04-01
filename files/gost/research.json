@@ -2,8 +2,8 @@
     "name": "Конкурс статей",
     "font-style": "Times New Roman",
     "font-size": "14",
-    "paragraph-indent": "1,25",
-    "interval": "1,5",
+    "paragraph-indent": "1.25",
+    "interval": "1.5",
     "alignment": "по ширине"
 
 }

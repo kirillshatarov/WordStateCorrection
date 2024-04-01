@@ -29,10 +29,10 @@ a_i_key.add("1.0", "1.25", "1.5", "2", "3")
 
 
 def gost_keys():
-    gost_keys = types.ReplyKeyboardMarkup(resize_keyboard=True, one_time_keyboard=True)
+    gkey = types.ReplyKeyboardMarkup(resize_keyboard=True, one_time_keyboard=True)
     for ke in fl.FileReader.get_files():
-        gost_keys.add(ke)
-    return gost_keys
+        gkey.add(ke)
+    return gkey
 
 
 class Form(StatesGroup):
@@ -69,6 +69,7 @@ async def handle_docs(message: types.Message, state: FSMContext):
 async def process(message: types.Message, state: FSMContext):
     async with state.proxy() as data:
         if "Проверить конкретный гост" == message.text:
+            print(gost_keys())
             await message.answer(
                 "Спасибо, за выбор теперь выберите гост на который вы хотите проверить",
                 reply_markup=gost_keys())
@@ -145,4 +146,5 @@ async def process2(message: types.Message, state: FSMContext):
 
 
 if __name__ == '__main__':
+    print(gost_keys())
     executor.start_polling(dp, skip_updates=True)
