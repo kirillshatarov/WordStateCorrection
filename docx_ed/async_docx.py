@@ -1,14 +1,16 @@
 import asyncio
 import os
+
 import docx
+
 import docx_ed.cfg as c
 from docx_ed.file_reader import FileReader
-from docx.shared import Pt
 
 
 def painter(paragraph: docx, errors: list[tuple]):
     for color, comment in errors:
         paint(paragraph, color, comment)
+
 
 
 def paint(paragraph: docx, color: str, comment: str):
@@ -68,6 +70,7 @@ class FileManager:
             ans += f'\nВ абзацах: \n{abzac}\n\n\t'
             return ans
         return "Все соответствует госту"
+
 
     def lineal_is_correct_alignment(self) -> str:
         paragraphs = self.user_file.paragraphs
@@ -149,13 +152,13 @@ class FileManager:
         return error
 
     def is_correct_alignment(self, paragraph):
-        our_style = paragraph.style
         error = (False, ('green', 'All-okey'))
-        alignment = our_style.paragraph_format.alignment
-        alignment = alignment if alignment else 0
-        if paragraph.text.strip():
-            if alignment != self.alignment:
-                error = (True, ('green', c.exceptions['alignment'] + str(self.alignment)))
+        alignment = paragraph.alignment
+        alignment = alignment if alignment else paragraph.style.paragraph_format.alignment
+        if alignment:
+            if paragraph.text.strip():
+                if alignment != self.alignment:
+                    error = (True, ('green', c.exceptions['alignment'] + str(self.alignment)))
         return error
 
     def is_correct_interval(self, paragraph):
@@ -189,7 +192,7 @@ class FileManager:
     @staticmethod
     def is_not_Heading(style):
         our_style = style.lower()
-        for r_h,en_h in c.TITLE.items():
+        for r_h, en_h in c.TITLE.items():
             r_h = r_h.split()[0].lower()
             en_h = en_h.split()[0].lower()
             if r_h in our_style or en_h in our_style:
@@ -199,7 +202,7 @@ class FileManager:
     @staticmethod
     def is_picture_or_figure(style):
         our_style = style.lower()
-        paint_allies = ['рисунок','picture','figure','shape','фигур']
+        paint_allies = ['рисунок', 'picture', 'figure', 'shape', 'фигур']
         for st in paint_allies:
             if st in our_style:
                 return True
@@ -217,7 +220,8 @@ class FileManager:
                       'font-size': [],
                       'font-style': []
                       }
-            first_page = True
+
+            first_page = False # Скипает первую страницы до Введения у отчетов
             for i, paragraph in enumerate(self.user_file.paragraphs):
                 if first_page:
                     if not self.is_not_Heading(paragraph.style.name):
@@ -265,7 +269,7 @@ class FileManager:
                         abzac.append(strings.split()[-1])
                     abzac = join_numbers(abzac)
                     answer += f' Проблемы возникли с {keyh}: \n\t{reason.strip()} {spec}\n\t  В абзацах: \n{abzac}\n\n\t'
-            if answer:
+            if answer != f'Проверка госта {self.gost}\n':
                 return answer
             else:
                 return 'Все соотвествует ГОСТу'
