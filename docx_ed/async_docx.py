@@ -12,7 +12,6 @@ def painter(paragraph: docx, errors: list[tuple]):
         paint(paragraph, color, comment)
 
 
-
 def paint(paragraph: docx, color: str, comment: str):
     paragraph.add_comment(comment)
     for word in paragraph.runs:
@@ -70,7 +69,6 @@ class FileManager:
             ans += f'\nВ абзацах: \n{abzac}\n\n\t'
             return ans
         return "Все соответствует госту"
-
 
     def lineal_is_correct_alignment(self) -> str:
         paragraphs = self.user_file.paragraphs
@@ -221,7 +219,7 @@ class FileManager:
                       'font-style': []
                       }
 
-            first_page = False # Скипает первую страницы до Введения у отчетов
+            first_page = False  # Скипает первую страницы до Введения у отчетов
             for i, paragraph in enumerate(self.user_file.paragraphs):
                 if first_page:
                     if not self.is_not_Heading(paragraph.style.name):
@@ -279,6 +277,10 @@ class FileManager:
 
     def close(self):
         os.remove(self.user_file_name)
+
+    @staticmethod
+    def test():
+        print('Test')
 
 
 if __name__ == '__main__':
