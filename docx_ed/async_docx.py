@@ -280,6 +280,7 @@ class FileManager:
     def close(self):
         os.remove(self.user_file_name)
 
+    #TODO write a lot of tests
 
 if __name__ == '__main__':
     obj = FileManager(1, docx.Document('../test2.docx'), 'tur', gost="2.105-2019", doc_rej=True)
