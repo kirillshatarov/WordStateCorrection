@@ -1,9 +1,8 @@
 import asyncio
 import os
-
 import docx
-
 import docx_ed.cfg as c
+from dataclasses import dataclass
 from docx_ed.file_reader import FileReader
 
 
@@ -43,11 +42,20 @@ def join_numbers(numbers):
     return ", ".join(ranges)
 
 
-class FileManager:
-    functions: dict = {
-        'alignment'
-    }
+@dataclass
+class StyleFixer:
+    style_name: str
+    alignment: docx.enum.text.WD_ALIGN_PARAGRAPH
+    indent: float
+    interval: float
+    fsize: int
+    fname: str
 
+    def __str__(self):
+        return self.style_name
+
+
+class FileManager:
     def __init__(self, user_id: int, docx_: docx.Document, name: str, doc_rej: bool = False,
                  gost=None):
         self.gost = gost
@@ -57,8 +65,7 @@ class FileManager:
         self.alignment = None
         self.indent = None
         self.interval = None
-        self.fsize = None
-        self.fname = None
+        self.styles = []
         self.doc_rej = doc_rej
 
     @staticmethod
@@ -89,6 +96,27 @@ class FileManager:
             self.interval = params['interval']
             self.fname = params['font-style']
             self.fsize = params['font-size']
+            return True
+        return False
+
+    async def update_params_from_gost(self):
+        if self.gost in FileReader.get_files().keys():
+            gost_dicts = await FileReader(self.gost + '.json').read_file()
+            name = None
+            for gd_name in gost_dicts:
+                if name is None:
+                    name = gost_dicts[gd_name]
+                    continue
+                style_states = gost_dicts[gd_name]
+                style = StyleFixer(
+                    gd_name,
+                    c.setter_gost[style_states['alignment']],
+                    style_states['paragraph-indent'],
+                    style_states['interval'],
+                    style_states['font-size'],
+                    style_states['font-style']
+                )
+                self.styles.append(style)
             return True
         return False
 
@@ -261,5 +289,7 @@ class FileManager:
 
 
 if __name__ == '__main__':
-    obj = FileManager(1, docx.Document('../test2.docx'), 'tur', gost="2.105-2019", doc_rej=True)
-    asyncio.run(obj.is_correct_document())
+    obj = FileManager(1, docx.Document('../test2.docx'), 'tur', gost="new_gost", doc_rej=True)
+    asyncio.run(obj.update_params_from_gost())
+    print(obj.__dict__)
+    print('heading' in obj.styles)
