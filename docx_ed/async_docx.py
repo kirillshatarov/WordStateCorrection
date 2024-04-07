@@ -90,17 +90,6 @@ class FileManager:
             errors.append((self.get_f_dict()[function_name](paragraph), i))
         return self.msg_errors(filter(lambda tup: tup[0][0] is True, errors))
 
-    async def get_params_from_gost(self):
-        if self.gost in FileReader.get_files().keys():
-            params = await FileReader(self.gost + '.json').read_file()
-            self.alignment = c.setter_gost[params['alignment']]
-            self.indent = params['paragraph-indent']
-            self.interval = params['interval']
-            self.fname = params['font-style']
-            self.fsize = params['font-size']
-            return True
-        return False
-
     async def update_params_from_gost(self):
         if self.gost in FileReader.get_files().keys():
             gost_dicts = await FileReader(self.gost + '.json').read_file()
