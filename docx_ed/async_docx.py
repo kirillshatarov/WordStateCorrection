@@ -81,6 +81,7 @@ class FileManager:
             return ans
         return "Все соответствует госту"
 
+
     def lineal_is_choosen(self, function_name) -> str:
         paragraphs = self.user_file.paragraphs
         errors = []
