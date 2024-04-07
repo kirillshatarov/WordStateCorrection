@@ -1,5 +1,7 @@
 import asyncio
 import os
+from typing import Any
+
 import docx
 import docx_ed.cfg as c
 from dataclasses import dataclass
@@ -46,9 +48,9 @@ def join_numbers(numbers):
 class StyleStorage:
     style_name: str
     alignment: docx.enum.text.WD_ALIGN_PARAGRAPH
-    indent: float
-    interval: float
-    fsize: int
+    indent: Any
+    interval: Any
+    fsize: Any
     fname: str
 
     def __str__(self):
