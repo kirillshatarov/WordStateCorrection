@@ -56,18 +56,26 @@ def takeTemplate(paragraph):
     data["font_color"] = font_color
     return data
 
-def summarize(style:list[dict]) -> dict:
-    false_mark = [0,False,None]
-    true_style = {key:[] for key in style[0]}
+
+def summarize(style: list[dict]) -> dict:
+    false_mark = [0, False, None]
+    true_style = {key: [] for key in style[0]}
     for styl in style:
         for key in styl:
             val = styl[key]
             if val not in false_mark:
-                if isinstance(val,list):
+                if isinstance(val, list):
                     if val[0] in false_mark: continue
                 true_style[key].append(val)
     for key in true_style:
-        true_style[key] = list(set(true_style[key]))
+        tp = true_style[key]
+        tup = []
+        for kk in tp:
+            if isinstance(kk,list):
+                if isinstance(kk[0],float):
+                    tup = sorted(kk)
+
+        true_style[key] = tup if tup else list(set(tp))
         tr_val = true_style[key]
         if len(tr_val) < 2:
             if tr_val:
@@ -80,13 +88,21 @@ def summarize(style:list[dict]) -> dict:
 def generate_gost(file: docx.Document) -> dict:
     headings = []
     main_text = []
+    fig_pic = []
+    listing = []
     for i, paragraph in enumerate(file.paragraphs):
         if sp.is_Heading(paragraph.style.name):
             headings.append(takeTemplate(paragraph))
+        elif sp.is_picture_or_figure(paragraph.style.name):
+            fig_pic.append(takeTemplate(paragraph))
+        elif sp.is_listing(paragraph):
+            listing.append(takeTemplate(paragraph))
     gost = {
         "name": 'user_gost',
         "heading": summarize(headings),
-        "main_text": {}
+        "main_text": {},
+        "picture_or_figure":summarize(fig_pic),
+        "listing": summarize(listing)
     }
     return gost
 

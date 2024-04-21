@@ -1,9 +1,10 @@
 import asyncio
 import os
-from typing import Any
-
+import style_parser as sp
 import docx
 import docx_ed.cfg as c
+
+from typing import Any
 from dataclasses import dataclass
 from docx_ed.file_reader import FileReader
 
@@ -218,29 +219,6 @@ class FileManager:
                     error = (True, ('blue', c.exceptions['indent'] + str(indent)))
         return error
 
-    @staticmethod
-    def is_Heading(style):
-        our_style = style.lower()
-        for r_h, en_h in c.TITLE.items():
-            r_h = r_h.split()[0].lower()
-            en_h = en_h.split()[0].lower()
-            if r_h in our_style or en_h in our_style:
-                return True
-        return False
-
-    @staticmethod
-    def is_picture_or_figure(style):
-        our_style = style.lower()
-        paint_allies = ['рисунок', 'picture', 'figure', 'shape', 'фигур']
-        for st in paint_allies:
-            if st in our_style:
-                return True
-        return False
-
-    @staticmethod
-    def is_listing(paragraph):
-        return len(paragraph._element.xpath('./w:pPr/w:numPr')) > 0
-
     async def is_correct_document(self):
         if await self.update_params_from_gost():
             errors = {'alignment': [],
@@ -254,14 +232,14 @@ class FileManager:
             for i, paragraph in enumerate(self.user_file.paragraphs):
                 self.last_style = 'main_text'
                 if first_page:
-                    if self.is_Heading(paragraph.style.name):
+                    if sp.is_Heading(paragraph.style.name):
                         first_page = False
                     else:
                         continue
 
-                if self.is_picture_or_figure(paragraph.style.name): continue
-                if self.is_Heading(paragraph.style.name): self.last_style = 'heading'
-                if self.is_listing(paragraph): continue
+                if sp.is_picture_or_figure(paragraph.style.name): continue
+                if sp.is_Heading(paragraph.style.name): self.last_style = 'heading'
+                if sp.is_listing(paragraph): continue
 
                 actual_font_size_info = self.is_correct_font_size(paragraph)  # Размер шрифта
                 actual_font_style_info = self.is_correct_font_style(paragraph)  # Стиль шрифта
