@@ -151,7 +151,9 @@ class FileManager:
             font_size = run.font.size.pt if run.font.size else None
             if font_size is None: return error
             if isinstance(fsize, list):
-                left, right = map(float, fsize)
+                surse = list(map(float, fsize))
+                left = surse[0]
+                right = surse[-1]
                 if not (left <= font_size <= right):
                     error = (True, ('pink', c.exceptions['font-size'] + '-'.join(fsize)))
                     break
@@ -213,7 +215,9 @@ class FileManager:
 
         if interval is None: return error
         if isinstance(interval, list):
-            left, right = map(float, interval)
+            surse = list(map(float, interval))
+            left = surse[0]
+            right = surse[-1]
             if not (left <= doc_interval <= right):
                 error = (True, ('yellow', c.exceptions['line_spacing'] + '-'.join(interval)))
 
@@ -234,7 +238,9 @@ class FileManager:
         if paragraph.paragraph_format.first_line_indent is not None:
             doc_indent = round(paragraph.paragraph_format.first_line_indent.cm, 2)
             if isinstance(indent, list):
-                left, right = map(float, indent)
+                surse = list(map(float, indent))
+                left = surse[0]
+                right = surse[-1]
                 if not (left <= doc_indent <= right):
                     error = (True, ('blue', c.exceptions['indent'] + '-'.join(indent)))
             else:
