@@ -94,8 +94,16 @@ class FileManager:
         return self.msg_errors(filter(lambda tup: tup[0][0] is True, errors))
 
     async def update_params_from_gost(self):
-        if self.gost in FileReader.get_files().keys():
-            gost_dicts = await FileReader(self.gost + '.json').read_file()
+        user_gosts = FileReader.get_user_gosts().keys()
+        pre_gosts = FileReader.get_actual_pre_gosts().keys()
+        if self.gost in user_gosts or self.gost in pre_gosts:
+            fl = FileReader(self.gost + '.json')
+            if self.gost in pre_gosts:
+                gost_dicts = await fl.read_file_from_pre()
+
+            else:
+                gost_dicts = await fl.read_file_from_user()
+            alignment_settings = c.setter_gost
             name = None
             for gd_name in gost_dicts:
                 if name is None:
@@ -104,12 +112,13 @@ class FileManager:
                 style_states = gost_dicts[gd_name]
                 style = StyleStorage(
                     gd_name,
-                    c.setter_gost[style_states['alignment']],
-                    style_states['paragraph-indent'],
+                    alignment_settings[c.templ_sel_gost[style_states['alignment']]],
+                    style_states['indent'],
                     style_states['interval'],
                     style_states['font-size'],
                     style_states['font-style']
                 )
+
                 self.styles[gd_name] = style
             return True
         return False
@@ -125,12 +134,11 @@ class FileManager:
 
     def is_correct_font_size(self, paragraph) -> tuple:
         error = (False, ('pink', 'All-okey'))
-
         if self.last_style is not None:
             fsize = self.styles[self.last_style].fsize
         else:
             fsize = self.fsize
-
+        if fsize is None: return error
         for run in paragraph.runs:
             font_size = run.font.size.pt if run.font.size else None
             if font_size is None: return error
@@ -153,6 +161,7 @@ class FileManager:
         else:
             fname = self.fname
 
+        if fname is None: return error
         for run in paragraph.runs:
             font_style = run.font.name
             if font_style:
@@ -175,6 +184,8 @@ class FileManager:
         else:
             alignment = self.alignment
 
+        if alignment is None: return error
+
         if doc_alignment:
             if paragraph.text.strip():
                 if alignment != doc_alignment:
@@ -192,6 +203,7 @@ class FileManager:
         else:
             interval = self.interval
 
+        if interval is None: return error
         if isinstance(interval, list):
             left, right = map(float, interval)
             if not (left <= doc_interval <= right):
@@ -208,6 +220,9 @@ class FileManager:
             indent = self.styles[self.last_style].indent
         else:
             indent = self.indent
+
+        if indent is None: return error
+
         if paragraph.paragraph_format.first_line_indent is not None:
             doc_indent = round(paragraph.paragraph_format.first_line_indent.cm, 2)
             if isinstance(indent, list):
@@ -267,7 +282,10 @@ class FileManager:
         if self.doc_rej:
             self.saver()
         else:
-            answer = f'Проверка госта {self.gost}\n'
+            if self.gost in FileReader.get_user_gosts():
+                answer  = f'Проверка госта из примера\n'
+            else:
+                answer = f'Проверка госта {self.gost}\n'
             for keyh in errors:
                 reason, spec = '', ''
                 if errors[keyh]:
@@ -291,7 +309,5 @@ class FileManager:
 
 
 if __name__ == '__main__':
-    obj = FileManager(1, docx.Document('../test2.docx'), 'tur', gost="new_gost", doc_rej=True)
-    asyncio.run(obj.is_correct_document())
-    print(obj.__dict__)
-    print('heading' in obj.styles)
+    obj = FileManager(1, docx.Document('../test2.docx'), 'tur', gost="1", doc_rej=False)
+    print(asyncio.run(obj.is_correct_document()))
