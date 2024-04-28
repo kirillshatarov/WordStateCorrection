@@ -114,7 +114,7 @@ class FileManager:
                     continue
                 style_states = gost_dicts[gd_name]
                 if len(style_states) == 0: continue
-                if isinstance(style_states,list):
+                if isinstance(style_states['alignment'],list):
                     alignment = None
                 else:
                     alignment = c.templ_sel_gost[style_states['alignment']] if is_user_gost else style_states['alignment']
