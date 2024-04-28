@@ -155,7 +155,7 @@ class FileManager:
                 left = surse[0]
                 right = surse[-1]
                 if not (left <= font_size <= right):
-                    error = (True, ('pink', c.exceptions['font-size'] + '-'.join(fsize)))
+                    error = (True, ('pink', c.exceptions['font-size'] + '-'.join(map(str, fsize))))
                     break
             else:
                 if font_size != float(fsize):
@@ -178,7 +178,7 @@ class FileManager:
                 if isinstance(fname, list):
                     if font_style not in fname:
                         error = (
-                            True, ('red', c.exceptions['font-style'] + '-'.join(fname)))
+                            True, ('red', c.exceptions['font-style'] + '-'.join(map(str, fname))))
                 else:
                     if font_style not in fname:
                         error = (True, ('red', c.exceptions['font-style'] + str(fname)))
@@ -219,7 +219,7 @@ class FileManager:
             left = surse[0]
             right = surse[-1]
             if not (left <= doc_interval <= right):
-                error = (True, ('yellow', c.exceptions['line_spacing'] + '-'.join(interval)))
+                error = (True, ('yellow', c.exceptions['line_spacing'] + '-'.join(map(str, interval))))
 
         else:
             if doc_interval != float(interval):
@@ -242,7 +242,7 @@ class FileManager:
                 left = surse[0]
                 right = surse[-1]
                 if not (left <= doc_indent <= right):
-                    error = (True, ('blue', c.exceptions['indent'] + '-'.join(indent)))
+                    error = (True, ('blue', c.exceptions['indent'] + '-'.join(map(str, indent))))
             else:
                 if doc_indent != float(indent):
                     error = (True, ('blue', c.exceptions['indent'] + str(indent)))
