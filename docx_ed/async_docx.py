@@ -114,7 +114,10 @@ class FileManager:
                     continue
                 style_states = gost_dicts[gd_name]
                 if len(style_states) == 0: continue
-                alignment = c.templ_sel_gost[style_states['alignment']] if is_user_gost else style_states['alignment']
+                if isinstance(style_states,list):
+                    alignment = None
+                else:
+                    alignment = c.templ_sel_gost[style_states['alignment']] if is_user_gost else style_states['alignment']
                 style = StyleStorage(
                     gd_name,
                     alignment_settings[alignment],
@@ -314,7 +317,7 @@ class FileManager:
 
 
 if __name__ == '__main__':
-    template = Template(1, docx.Document('../test.docx'))
+    template = Template(1, docx.Document('../test2.docx'))
     template.writeTemplates(template.generate_gost())
     obj = FileManager(1, docx.Document('../test2.docx'), 'tur', gost="new_gost", doc_rej=False)
     print(asyncio.run(obj.is_correct_document()))
