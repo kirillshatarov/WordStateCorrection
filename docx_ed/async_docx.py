@@ -114,7 +114,10 @@ class FileManager:
                     continue
                 style_states = gost_dicts[gd_name]
                 if len(style_states) == 0: continue
-                alignment = c.templ_sel_gost[style_states['alignment']] if is_user_gost else style_states['alignment']
+                if isinstance(style_states['alignment'],list):
+                    alignment = "по умолчанию"
+                else:
+                    alignment = c.templ_sel_gost[style_states['alignment']] if is_user_gost else style_states['alignment']
                 style = StyleStorage(
                     gd_name,
                     alignment_settings[alignment],
@@ -148,9 +151,11 @@ class FileManager:
             font_size = run.font.size.pt if run.font.size else None
             if font_size is None: return error
             if isinstance(fsize, list):
-                left, right = map(float, fsize)
+                surse = list(map(float, fsize))
+                left = surse[0]
+                right = surse[-1]
                 if not (left <= font_size <= right):
-                    error = (True, ('pink', c.exceptions['font-size'] + '-'.join(fsize)))
+                    error = (True, ('pink', c.exceptions['font-size'] + '-'.join(map(str, fsize))))
                     break
             else:
                 if font_size != float(fsize):
@@ -173,7 +178,7 @@ class FileManager:
                 if isinstance(fname, list):
                     if font_style not in fname:
                         error = (
-                            True, ('red', c.exceptions['font-style'] + '-'.join(fname)))
+                            True, ('red', c.exceptions['font-style'] + '-'.join(map(str, fname))))
                 else:
                     if font_style not in fname:
                         error = (True, ('red', c.exceptions['font-style'] + str(fname)))
@@ -210,9 +215,11 @@ class FileManager:
 
         if interval is None: return error
         if isinstance(interval, list):
-            left, right = map(float, interval)
+            surse = list(map(float, interval))
+            left = surse[0]
+            right = surse[-1]
             if not (left <= doc_interval <= right):
-                error = (True, ('yellow', c.exceptions['line_spacing'] + '-'.join(interval)))
+                error = (True, ('yellow', c.exceptions['line_spacing'] + '-'.join(map(str, interval))))
 
         else:
             if doc_interval != float(interval):
@@ -231,9 +238,11 @@ class FileManager:
         if paragraph.paragraph_format.first_line_indent is not None:
             doc_indent = round(paragraph.paragraph_format.first_line_indent.cm, 2)
             if isinstance(indent, list):
-                left, right = map(float, indent)
+                surse = list(map(float, indent))
+                left = surse[0]
+                right = surse[-1]
                 if not (left <= doc_indent <= right):
-                    error = (True, ('blue', c.exceptions['indent'] + '-'.join(indent)))
+                    error = (True, ('blue', c.exceptions['indent'] + '-'.join(map(str, indent))))
             else:
                 if doc_indent != float(indent):
                     error = (True, ('blue', c.exceptions['indent'] + str(indent)))
@@ -314,7 +323,7 @@ class FileManager:
 
 
 if __name__ == '__main__':
-    template = Template(1, docx.Document('../test.docx'))
+    template = Template(1, docx.Document('../test2.docx'))
     template.writeTemplates(template.generate_gost())
     obj = FileManager(1, docx.Document('../test2.docx'), 'tur', gost="new_gost", doc_rej=False)
     print(asyncio.run(obj.is_correct_document()))
