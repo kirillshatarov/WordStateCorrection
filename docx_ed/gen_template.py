@@ -64,6 +64,7 @@ class Template:
 
     def summarize(self, style: list[dict]) -> dict:
         false_mark = [0, False, None]
+        if not len(style): return {}
         true_style = {key: [] for key in style[0]}
         for styl in style:
             for key in styl:

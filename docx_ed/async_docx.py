@@ -7,6 +7,7 @@ import docx_ed.cfg as c
 from typing import Any
 from dataclasses import dataclass
 from docx_ed.file_reader import FileReader
+from docx_ed.gen_template import Template
 
 
 def painter(paragraph: docx, errors: list[tuple]):
@@ -98,11 +99,13 @@ class FileManager:
         pre_gosts = FileReader.get_actual_pre_gosts().keys()
         if self.gost in user_gosts or self.gost in pre_gosts:
             fl = FileReader(self.gost + '.json')
+            is_user_gost = False
             if self.gost in pre_gosts:
                 gost_dicts = await fl.read_file_from_pre()
 
             else:
                 gost_dicts = await fl.read_file_from_user()
+                is_user_gost = True
             alignment_settings = c.setter_gost
             name = None
             for gd_name in gost_dicts:
@@ -110,9 +113,11 @@ class FileManager:
                     name = gost_dicts[gd_name]
                     continue
                 style_states = gost_dicts[gd_name]
+                if len(style_states) == 0: continue
+                alignment = c.templ_sel_gost[style_states['alignment']] if is_user_gost else style_states['alignment']
                 style = StyleStorage(
                     gd_name,
-                    alignment_settings[c.templ_sel_gost[style_states['alignment']]],
+                    alignment_settings[alignment],
                     style_states['indent'],
                     style_states['interval'],
                     style_states['font-size'],
@@ -283,7 +288,7 @@ class FileManager:
             self.saver()
         else:
             if self.gost in FileReader.get_user_gosts():
-                answer  = f'Проверка госта из примера\n'
+                answer = f'Проверка госта из примера\n'
             else:
                 answer = f'Проверка госта {self.gost}\n'
             for keyh in errors:
@@ -309,5 +314,7 @@ class FileManager:
 
 
 if __name__ == '__main__':
-    obj = FileManager(1, docx.Document('../test2.docx'), 'tur', gost="1", doc_rej=False)
+    template = Template(1, docx.Document('../test.docx'))
+    template.writeTemplates(template.generate_gost())
+    obj = FileManager(1, docx.Document('../test2.docx'), 'tur', gost="new_gost", doc_rej=False)
     print(asyncio.run(obj.is_correct_document()))
