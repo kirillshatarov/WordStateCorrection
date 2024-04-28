@@ -7,14 +7,13 @@ import docx_ed.style_parser as sp
 
 
 class Template:
-    def __init__(self,user_id,docx_: docx.Document):
+    def __init__(self, user_id, docx_: docx.Document):
         self.user_id = user_id
         self.docx_ = docx_
 
     def writeTemplates(self, data):
         with open(f'../files/user_json/{self.user_id}.json', 'w') as outfile:
             json.dump(data, outfile)
-
 
     @staticmethod
     def takeTemplate(paragraph):
@@ -76,11 +75,15 @@ class Template:
         for key in true_style:
             tp = true_style[key]
             tup = []
+            alph_set = set()
             for kk in tp:
                 if isinstance(kk, list):
                     if isinstance(kk[0], float):
                         tup = sorted(kk)
-
+                    else:
+                        if kk[0] not in false_mark:
+                            alph_set.update(set(kk))
+            tup = list(alph_set) if alph_set else tup
             true_style[key] = tup if tup else list(set(tp))
             tr_val = true_style[key]
             if len(tr_val) < 2:
@@ -102,17 +105,19 @@ class Template:
                 fig_pic.append(self.takeTemplate(paragraph))
             elif sp.is_listing(paragraph):
                 listing.append(self.takeTemplate(paragraph))
+            else:
+                main_text.append(self.takeTemplate(paragraph))
         gost = {
             "name": 'user_gost',
             "heading": self.summarize(headings),
-            "main_text": self.summarize(headings),
-            "picture_or_figure": self.summarize(fig_pic),
+            "main_text": self.summarize(main_text),
+            "picture_or_figure": self.summarize(main_text),
             "listing": self.summarize(listing)
         }
         return gost
 
 
 if __name__ == "__main__":
-    templ = Template(user_id='1',docx_=docx.Document('../test2.docx'))
+    templ = Template(user_id='1', docx_=docx.Document('../test2.docx'))
     gost = templ.generate_gost()
     templ.writeTemplates(gost)
