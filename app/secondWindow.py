@@ -1,3 +1,4 @@
+import asyncio
 import sys
 
 from typing import Any
@@ -15,17 +16,10 @@ from docx_ed.file_reader import FileReader
 
 
 # GOST_FILE = "GOSTs.json"
-@dataclass
-class StyleStorage:
-    style_name: str
-    alignment: docx.enum.text.WD_ALIGN_PARAGRAPH
-    indent: Any
-    interval: Any
-    fsize: Any
-    fname: str
 
 
 class SecondWindow(QWidget):
+    selected_gost = 'new_gost'
     def __init__(self, main_window):
         super().__init__()
 
@@ -41,6 +35,7 @@ class SecondWindow(QWidget):
         self.initUI()
 
     def initUI(self):
+
         # Виджеты (элементы)
         self.title = QLabel("Проверка файла по ГОСТам", self)
         # self.title.setAlignment(QtCore.Qt.AlignCenter)
@@ -82,7 +77,7 @@ class SecondWindow(QWidget):
                                         ''')
 
         self.gostPicked = QLabel(self)
-        self.gostPicked.setVisible(False)
+        self.gostPicked.setVisible(True)
         self.gostPicked.setStyleSheet('''
                                     QLabel {
                                                 font-size: 20px;
@@ -92,7 +87,7 @@ class SecondWindow(QWidget):
                                         ''')
 
         self.choiceGost = QComboBox(self)
-        self.gost_keys = list(FileReader.get_files().keys())
+        self.gost_keys = list(FileReader.get_actual_pre_gosts().keys())
         # self.gost_data = FileReader.read_file()    # Загрузка данных из JSON файла с использованием функции
         # self.gost_keys = list(self.gost_data.keys())   # Получение списка ключей
         self.choiceGost.addItems(self.gost_keys)  # Добавление ключей в QComboBox
@@ -130,10 +125,21 @@ class SecondWindow(QWidget):
                                 }
                             ''')
 
+        self.elementPicked = QLabel(self)
+        self.elementPicked.setVisible(True)
+        self.elementPicked.setStyleSheet('''
+                                            QLabel {
+                                                        font-size: 20px;
+                                                        font-family: 'Aleo';
+                                                        color: #F4F2F2;
+                                                    }
+                                                ''')
+
         self.choiceElement = QComboBox(self)
-        self.element_keys = list("heading", "main_text")
-        # self.gost_data = FileReader.read_file()    # Загрузка данных из JSON файла с использованием функции
-        # self.gost_keys = list(self.gost_data.keys())   # Получение списка ключей
+        objElement = FileManager(1, docx.Document('../test2.docx'), 'tur', gost=self.selected_gost, doc_rej=False)
+        asyncio.run(objElement.update_params_from_gost())
+        styles = objElement.styles
+        self.element_keys = list(styles.keys())
         self.choiceElement.addItems(self.element_keys)  # Добавление ключей в QComboBox
         self.choiceElement.setStyleSheet('''
                              QComboBox {
@@ -231,6 +237,18 @@ class SecondWindow(QWidget):
                                                   margin: 0px 30px 0px 30px;
                                                 }
                                             ''')
+
+        self.styleLabel = QLabel("Название стиля:", self)
+        self.styleLabel.setStyleSheet('''
+                                                  QLabel {
+                                                          font-size: 20px;
+                                                          font-weight: 400;
+                                                          font-family: 'Aleo';
+                                                          color: #F4F2F2;
+                                                          /* border: 1px solid red; */
+                                                          margin: 0px 30px 0px 30px;
+                                                        }
+                                                    ''')
 
         # Кнопка выбора файла
         self.pickFileButton = QPushButton("Выбрать файл (docx)", self)
@@ -335,7 +353,9 @@ class SecondWindow(QWidget):
 
         #   Обработка событий
         self.choiceGost.activated.connect(self.get_params_from_ghost)
+        self.choiceElement.activated.connect(self.get_params_from_element)
         self.gostPicked.setText(self.choiceGost.currentText())
+        self.elementPicked.setText(self.choiceElement.currentText())
         self.pickFileButton.clicked.connect(self.pickFileButton_Clicked)
         self.checkFile.clicked.connect(self.checkFile_Clicked)
         self.downloadFile.clicked.connect(self.save_ready_file)
@@ -360,7 +380,8 @@ class SecondWindow(QWidget):
         grid.addWidget(self.title, 0, 0)  # QLabel("Проверка файла по ГОСТам')
         grid.addWidget(self.mainWindow_button, 0, 2)  # QPushButton("Проверить по своим параметрам")
         grid.addWidget(self.labelGost, 1, 0)  # QLabel("Выберите ГОСТ")
-        grid.addWidget(self.gostPicked, 1, 1)  # QLabel(self) выбранный гост
+        grid.addWidget(self.gostPicked, 5, 0)  # QLabel(self) выбранный гост
+        grid.addWidget(self.elementPicked, 6, 0)  # QLabel(self) выбранный элемент
         grid.addWidget(self.choiceGost, 2, 0)  # QComboBox(self)
         grid.addWidget(self.choiceElement, 3, 0)  # QComboBox(self)
         grid.addWidget(self.fontStyleLabel, 2, 1)  # QLabel("Шрифт:")
@@ -368,67 +389,49 @@ class SecondWindow(QWidget):
         grid.addWidget(self.paragraphIndentLabel, 4, 1)  # QLabel("Абзацный отступ:")
         grid.addWidget(self.intervalLabel, 5, 1)  # QLabel("Межстрочный интервал:")
         grid.addWidget(self.alignmentLabel, 6, 1)  # QLabel("Выравнивание:")
-        grid.addWidget(self.pickFileButton, 7, 0, 1, 2)  # QPushButton("Выбрать файл")
-        grid.addWidget(self.filePicked, 8, 0, 1, 2)  # QLabel("") выбранный файл
-        grid.addWidget(self.checkFile, 9, 0, 1, 2)  # QPushButton("Проверить файл")
-        grid.addWidget(self.answer, 1, 2, 9, 1)  # QScrollArea(self)
-        grid.addWidget(self.plain_text, 1, 2, 8, 1)  # QPlainTextEdit()
-        grid.addWidget(self.downloadFile, 9, 2, 1, 1)  # QPushButton("Скачать проверенный файл")
-
-
-
-
-    async def update_params_from_gost(self):
-        if self.gost in FileReader.get_files().keys():
-            self.selected_gost = self.choiceGost.itemText()
-            self.gostPicked.setText(self.selected_gost)
-            gost_dicts = await FileReader(self.gost + '.json').read_file()
-            name = None
-            for gd_name in gost_dicts:
-                if name is None:
-                    name = gost_dicts[gd_name]
-                    continue
-                style_states = gost_dicts[gd_name]
-                style = StyleStorage(
-                    gd_name,
-                    c.setter_gost[style_states['alignment']],
-                    style_states['paragraph-indent'],
-                    style_states['interval'],
-                    style_states['font-size'],
-                    style_states['font-style']
-                )
-                self.styles[gd_name] = style
-            return True
-        return False
-
-
+        grid.addWidget(self.styleLabel, 7, 1)  # QLabel("Название стиля:")
+        grid.addWidget(self.pickFileButton, 8, 0, 1, 2)  # QPushButton("Выбрать файл")
+        grid.addWidget(self.filePicked, 9, 0, 1, 2)  # QLabel("") выбранный файл
+        grid.addWidget(self.checkFile, 10, 0, 1, 2)  # QPushButton("Проверить файл")
+        grid.addWidget(self.answer, 1, 2, 10, 1)  # QScrollArea(self)
+        grid.addWidget(self.plain_text, 1, 2, 9, 1)  # QPlainTextEdit()
+        grid.addWidget(self.downloadFile, 10, 2, 1, 1)  # QPushButton("Скачать проверенный файл")
 
 
 
 
     def get_params_from_ghost(self, index):
-        if self.gost in FileReader.get_files().keys():
-            gost_dicts = await FileReader(self.gost + '.json').read_file()
-            name = None
-            for gd_name in gost_dicts:
-                if name is None:
-                    name = gost_dicts[gd_name]
-                    continue
+        gost = self.choiceGost.itemText(index)
+        self.selected_gost = gost if gost else self.selected_gost
+        self.gostPicked.setText(self.selected_gost)
+        print("selected_gost: ", self.selected_gost)
 
-            self.selected_gost = self.choiceGost.itemText(index)
-            self.gostPicked.setText(self.selected_gost)
-            params = FileReader(self.selected_gost + '.json').read_file()
-            self.alignment = c.setter_gost[params['alignment']]
-            self.indent = params['paragraph-indent']
-            self.interval = params['interval']
-            self.fname = params['font-style']
-            self.fsize = params['font-size']
+    def get_params_from_element(self, index):
+        self.object = FileManager(1, docx.Document('../test2.docx'), 'tur', gost=self.selected_gost, doc_rej=False)
+        asyncio.run(self.object.update_params_from_gost())
+        self.selected_element = self.choiceElement.itemText(index)
+        self.elementPicked.setText(self.selected_element)
+        styles_elem = self.object.styles
+        print("styles: ", styles_elem)
 
-            self.fontStyleLabel.setText(f"Font Style: {self.fname}")
-            self.fontSizeLabel.setText(f"Font Size: {self.fsize}")
-            self.paragraphIndentLabel.setText(f"Paragraph Indent: {self.indent}")
-            self.intervalLabel.setText(f"Interval: {self.interval}")
-            self.alignmentLabel.setText(f"Alignment: {self.alignment}")
+        self.selected_element = self.choiceElement.itemText(index)
+        self.elementPicked.setText(self.selected_element)
+        print("selected_element: ", self.selected_element)
+
+        self.style_name = styles_elem[self.selected_element].style_name
+        self.alignment = styles_elem[self.selected_element].alignment
+        self.indent = styles_elem[self.selected_element].indent
+        self.interval = styles_elem[self.selected_element].interval
+        self.fname = styles_elem[self.selected_element].fname
+        self.fsize = styles_elem[self.selected_element].fsize
+
+        self.fontStyleLabel.setText(f"Шрифт: {self.fname}")
+        self.fontSizeLabel.setText(f"Размер шрифта: {self.fsize}")
+        self.paragraphIndentLabel.setText(f"Абзацный отступ: {self.indent}")
+        self.intervalLabel.setText(f"Межстрочный интервал: {self.interval}")
+        self.alignmentLabel.setText(f"Выравнивание: {self.alignment}")
+        self.styleLabel.setText(f"Название стиля: {self.style_name}")
+
 
     # def loadGostValues(self):
     #     with open('GOSTs.json', 'r', encoding='utf-8') as file:
@@ -471,20 +474,25 @@ class SecondWindow(QWidget):
             print(self.selected_gost)
             # print(type(self.selected_gost))
             self.fileName = self.pathFile.split('/')[-1]
-            self.path = f'./{self.fileName}'
-            # print(self.path)
-            obj = FileManger(1, docx.Document(self.path), 'tur', gost=self.selected_gost, doc_rej=True)
-            errors = obj.is_correct_document()
-            print(obj.__dict__)
-            print('heading' in obj.styles)
+            self.path = f'../{self.fileName}'
+            print(self.path)
+            obj = FileManager(1, docx.Document(self.path), 'tur', gost=self.selected_gost, doc_rej=False)
+            errors = asyncio.run(obj.is_correct_document())
             self.plain_text.clear()
             self.plain_text.setPlainText(errors)
 
 
 
     def save_ready_file(self):
-        obj2 = FileManger(docx.Document(self.path), gost=self.selected_gost, doc_rej=True)
-        obj2.is_correct_document()
+        obj2 = FileManager(1, docx.Document(self.path), 'tur', gost=self.selected_gost, doc_rej=True)
+        asyncio.run(obj2.is_correct_document())
+        options = QFileDialog.Options()
+        default_name = "_ready_file.docx"
+        file_name, _ = QFileDialog.getSaveFileName(None, "Сохранить файл", default_name, "Word files (*.docx)",
+                                                   options=options)
+        if file_name:
+            obj2.user_file.save(file_name)
+
 
     def dragEnterEvent(self, event):
         mime_data = event.mimeData()
